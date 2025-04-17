@@ -3,34 +3,33 @@
 # -CASE STUDY I-
 ##########################################################################
 
-# İŞ PROBLEMİ:
-# Şirketi terk edecek müşterileri tahmin edebilecek bir makine öğrenmesi modeli geliştirilmesi beklenmektedir.
-# Telco müşteri kaybı verileri, üçüncü çeyrekte Kaliforniya'daki 7043 müşteriye ev telefonu ve İnternet hizmetleri
-# sağlayan hayali bir telekom şirketi hakkında bilgi içerir. Hangi müşterilerin hizmetlerinden ayrıldığını, kaldığını
-# veya hizmete kaydolduğunu gösterir.
+# BUSINESS PROBLEM:
+# It is expected to develop a machine learning model that can predict customers who are likely to leave the company.  
+# Telco customer churn data provides information about 7043 customers of a fictional telecom company  
+# that provides home phone and internet services in California during the third quarter.  
+# It shows which customers stayed, left, or signed up for the service.
 
-# CustomerId: Müşteri İd’si
-# Gender: Cinsiyet
-# SeniorCitizen: Müşterinin yaşlı olup olmadığı (1, 0)
-# Partner: Müşterinin bir ortağı olup olmadığı (Evet, Hayır)
-# Dependents: Müşterinin bakmakla yükümlü olduğu kişiler olup olmadığı (Evet, Hayır
-# tenure: Müşterinin şirkette kaldığı ay sayısı
-# PhoneService: Müşterinin telefon hizmeti olup olmadığı (Evet, Hayır)
-# MultipleLines: Müşterinin birden fazla hattı olup olmadığı (Evet, Hayır, Telefon hizmeti yok)
-# InternetService: Müşterinin internet servis sağlayıcısı (DSL, Fiber optik, Hayır)
-# OnlineSecurity: Müşterinin çevrimiçi güvenliğinin olup olmadığı (Evet, Hayır, İnternet hizmeti yok)
-# OnlineBackup: Müşterinin online yedeğinin olup olmadığı (Evet, Hayır, İnternet hizmeti yok)
-# DeviceProtection: Müşterinin cihaz korumasına sahip olup olmadığı (Evet, Hayır, İnternet hizmeti yok)
-# TechSupport: Müşterinin teknik destek alıp almadığı (Evet, Hayır, İnternet hizmeti yok)
-# StreamingTV: Müşterinin TV yayını olup olmadığı (Evet, Hayır, İnternet hizmeti yok)
-# StreamingMovies: Müşterinin film akışı olup olmadığı (Evet, Hayır, İnternet hizmeti yok)
-# Contract: Müşterinin sözleşme süresi (Aydan aya, Bir yıl, İki yıl)
-# PaperlessBilling: Müşterinin kağıtsız faturası olup olmadığı (Evet, Hayır)
-# PaymentMethod: Müşterinin ödeme yöntemi (Elektronik çek, Posta çeki, Banka havalesi (otomatik), Kredi kartı (otomatik)
-# MonthlyCharges: Müşteriden aylık olarak tahsil edilen tutar
-# TotalCharges: Müşteriden tahsil edilen toplam tutar
-# Churn: Müşterinin kullanıp kullanmadığı (Evet veya Hayır)
-
+# CustomerId: Customer ID  
+# Gender: Gender  
+# SeniorCitizen: Whether the customer is a senior citizen (1 = Yes, 0 = No)  
+# Partner: Whether the customer has a partner (Yes, No)  
+# Dependents: Whether the customer has dependents (Yes, No)  
+# tenure: Number of months the customer has stayed with the company  
+# PhoneService: Whether the customer has phone service (Yes, No)  
+# MultipleLines: Whether the customer has multiple lines (Yes, No, No phone service)  
+# InternetService: Customer’s internet service provider (DSL, Fiber optic, No)  
+# OnlineSecurity: Whether the customer has online security (Yes, No, No internet service)  
+# OnlineBackup: Whether the customer has online backup (Yes, No, No internet service)  
+# DeviceProtection: Whether the customer has device protection (Yes, No, No internet service)  
+# TechSupport: Whether the customer has tech support (Yes, No, No internet service)  
+# StreamingTV: Whether the customer has streaming TV service (Yes, No, No internet service)  
+# StreamingMovies: Whether the customer has streaming movies service (Yes, No, No internet service)  
+# Contract: Customer’s contract term (Month-to-month, One year, Two year)  
+# PaperlessBilling: Whether the customer uses paperless billing (Yes, No)  
+# PaymentMethod: Customer’s payment method (Electronic check, Mailed check, Bank transfer (automatic), Credit card (automatic))  
+# MonthlyCharges: The amount charged to the customer monthly  
+# TotalCharges: The total amount charged to the customer  
+# Churn: Whether the customer has churned (Yes or No)
 ##########################################################################
 
 import numpy as np
@@ -59,7 +58,7 @@ pd.set_option('display.float_format', lambda x: '%.3f' % x)
 pd.set_option('display.width', 500)
 
 
-# Veri setinde değişkenlerin eşik değerlerinin hesaplanması:
+# Calculating threshold values for variables in the dataset
 def outlier_thresholds(dataframe, col_name, q1=0.05, q3=0.95):
     quartile1 = dataframe[col_name].quantile(q1)
     quartile3 = dataframe[col_name].quantile(q3)
@@ -69,7 +68,7 @@ def outlier_thresholds(dataframe, col_name, q1=0.05, q3=0.95):
     return low_limit, up_limit
 
 
-# Veri setinde değişkenlerde aykırı değer var mı yok mu?:
+# Checking whether there are any outliers in the variables of the dataset
 def check_outlier(dataframe, col_name):
     low_limit, up_limit = outlier_thresholds(dataframe, col_name)
     if dataframe[(dataframe[col_name] > up_limit) | (dataframe[col_name] < low_limit)].any(axis=None):
@@ -78,7 +77,7 @@ def check_outlier(dataframe, col_name):
         return False
 
 
-# Aykırı değere sahip değişkendeki aykırı değerlerin eşik değerleri ile değiştirilmesi:
+# Replacing outlier values in the variable with the calculated threshold values
 def replace_with_thresholds(dataframe, variable):
     low_limit, up_limit = outlier_thresholds(dataframe, variable)
     dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
@@ -86,14 +85,14 @@ def replace_with_thresholds(dataframe, variable):
 
 
 ###############################################################################
-# Görev 1: Keşifçi Veri Analizi
+# Task 1: Exploratory Data Analysis
 ###############################################################################
 
 #########################
-# Adım 1: Numerik ve kategorik değişkenleri yakalayınız.
+# Step 1: Identify numerical and categorical variables
 #########################
 
-def load():  # Bu fonksiyon churn veri setini getirir
+def load():  
     data = pd.read_csv("hafta6_machinelearning/case1/Telco-Customer-Churn.csv")
     return data
 
@@ -128,60 +127,60 @@ check_df(df)
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
     """
+    Returns the names of categorical, numerical, and categorical but cardinal variables in the dataset.
 
-    Veri setindeki kategorik, numerik ve kategorik fakat kardinal (bilgi taşımayan) değişkenlerin isimlerini verir.
-    Not: Kategorik değişkenlerin içerisine numerik görünümlü kategorik değişkenler de dahildir. (ör: Survived, Pclass)
+    Note:
+        Categorical variables also include numerical-looking categorical variables 
+        (e.g., Survived, Pclass).
 
     Parameters
-    ------
-        dataframe: dataframe
-                Değişken isimleri alınmak istenilen dataframe
-        cat_th: int, optional
-                numerik fakat kategorik olan değişkenler için sınıf eşik değeri
-        car_th: int, optinal
-                kategorik fakat kardinal (çok fazla sınıfı olan) değişkenler için sınıf eşik değeri (ör: Name, Ticket)
+    ----------
+    dataframe : DataFrame
+        The dataframe from which variable names will be extracted.
+    cat_th : int, optional
+        Class threshold for numerical but categorical variables.
+    car_th : int, optional
+        Class threshold for categorical but cardinal variables (e.g., Name, Ticket).
 
     Returns
-    ------
-        cat_cols: list
-                Kategorik değişken listesi
-        num_cols: list
-                Numerik değişken listesi
-        cat_but_car: list
-                Kategorik görünümlü kardinal değişken listesi
+    -------
+    cat_cols : list
+        List of categorical variables
+    num_cols : list
+        List of numerical variables
+    cat_but_car : list
+        List of categorical-looking but cardinal variables
 
     Examples
-    ------
-        import seaborn as sns
-        df = sns.load_dataset("iris")
-        print(grab_col_names(df))
-
+    --------
+    import seaborn as sns  
+    df = sns.load_dataset("iris")  
+    print(grab_col_names(df))
 
     Notes
-    ------
-        cat_cols + num_cols + cat_but_car = toplam değişken sayısı
-        num_but_cat cat_cols'un içerisinde.
-        Return olan 3 liste toplamı toplam değişken sayısına eşittir: cat_cols + num_cols + cat_but_car = değişken sayısı
-
+    -----
+    cat_cols + num_cols + cat_but_car = total number of variables  
+    num_but_cat is included in cat_cols.  
+    The total number of variables is equal to the sum of the three returned lists:
+    cat_cols + num_cols + cat_but_car = total variable count
     """
-
     # cat_cols, cat_but_car
-    cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]  # tipi kategorik olanların hepsi
+    cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]  
 
     num_but_cat = [col for col in dataframe.columns if dataframe[col].nunique() < cat_th and
-                   dataframe[col].dtypes != "O"]  # tipi numerik görünen ama aslında kategorik olanlar (ör: Survived vs)
+                   dataframe[col].dtypes != "O"]  
 
     cat_but_car = [col for col in dataframe.columns if dataframe[col].nunique() > car_th and
-                   dataframe[col].dtypes == "O"]  # tipi kategorik görünen ama kardinal olanlar (ör: name)
+                   dataframe[col].dtypes == "O"]  
 
-    cat_cols = cat_cols + num_but_cat  # tüm kategorikler + kardinalleri de içerir.
+    cat_cols = cat_cols + num_but_cat  
 
-    cat_cols = [col for col in cat_cols if col not in cat_but_car]  # kardinalleri de çıkarttık sadece kategorik kaldı
+    cat_cols = [col for col in cat_cols if col not in cat_but_car]  
 
     # num_cols
-    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]  # tipi numerik olanların hepsi
+    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"] 
 
-    num_cols = [col for col in num_cols if col not in num_but_cat]  # tüm num. olanlardan; num. görünüp cat.'leri çıkart
+    num_cols = [col for col in num_cols if col not in num_but_cat] 
 
     print(f"Observations: {dataframe.shape[0]}")
     print(f"Variables: {dataframe.shape[1]}")
@@ -205,7 +204,7 @@ print(cat_but_car)
 
 
 #########################
-# Adım 2: Gerekli düzenlemeleri yapınız. (Tip hatası olan değişkenler gibi)
+# Step 2: Make necessary adjustments (e.g., variables with incorrect data types)
 #########################
 
 df.dtypes
@@ -239,7 +238,7 @@ Churn                object
 
 # customerID           object
 # gender               object
-# SeniorCitizen         int64 --> object olmalı
+# SeniorCitizen         int64 --> object 
 # Partner              object
 # Dependents           object
 # tenure                int64
@@ -256,7 +255,7 @@ Churn                object
 # PaperlessBilling     object
 # PaymentMethod        object
 # MonthlyCharges      float64
-# TotalCharges         object --> float olmalı
+# TotalCharges         object --> float 
 # Churn                object
 
 
@@ -270,10 +269,10 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 
 #########################
-# Adım 3: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
+# Step 3: Observe the distribution of numerical and categorical variables in the dataset
 #########################
 
-# Kategorik değişkenlerin sınıflarını ve bu sınıfların oranları:
+# The classes of categorical variables and the proportions of these classes
 def cat_summary(dataframe, col_name, plot=False):
     print(pd.DataFrame({col_name: dataframe[col_name].value_counts(),
                         "Ratio": 100 * dataframe[col_name].value_counts() / len(dataframe)}))
@@ -291,7 +290,7 @@ for col in cat_cols:
 # Yes     1869  26.536987
 
 
-# Numerik değişkenlerin yüzdelik değerleri
+
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99]
     print(dataframe[numerical_col].describe(quantiles).T)
@@ -308,76 +307,10 @@ for col in num_cols:
     num_summary(df, col, plot=True)
 plt.show()
 
-##########BERNA######
-def target_summary_with_cat(dataframe, target, cat_col):
-    print(pd.DataFrame({"TARGET FREQUENCY ": dataframe.groupby(cat_col)[target].count(), "RATIO ": 100 * dataframe.groupby(cat_col)[target].count() /
-                                                                                                   len(dataframe)}))
-
-for col in cat_cols: target_summary_with_cat(df, "Churn", col)
-###############
-
-
-
-# count   7043.000
-# mean      32.371
-# std       24.559
-# min        0.000
-# 5%         1.000
-# 10%        2.000
-# 20%        6.000
-# 30%       12.000
-# 40%       20.000
-# 50%       29.000
-# 60%       40.000
-# 70%       50.000
-# 80%       60.000
-# 90%       69.000
-# 95%       72.000
-# 99%       72.000
-# max       72.000
-# Name: tenure, dtype: float64
-# ##########################################
-# count   7043.000
-# mean      64.762
-# std       30.090
-# min       18.250
-# 5%        19.650
-# 10%       20.050
-# 20%       25.050
-# 30%       45.850
-# 40%       58.830
-# 50%       70.350
-# 60%       79.100
-# 70%       85.500
-# 80%       94.250
-# 90%      102.600
-# 95%      107.400
-# 99%      114.729
-# max      118.750
-# Name: MonthlyCharges, dtype: float64
-# ##########################################
-# count   7032.000
-# mean    2283.300
-# std     2266.771
-# min       18.800
-# 5%        49.605
-# 10%       84.600
-# 20%      267.070
-# 30%      551.995
-# 40%      944.170
-# 50%     1397.475
-# 60%     2048.950
-# 70%     3141.130
-# 80%     4475.410
-# 90%     5976.640
-# 95%     6923.590
-# 99%     8039.883
-# max     8684.800
-# Name: TotalCharges, dtype: float64
 
 
 #########################
-# Adım 4: Kategorik değişkenler ile hedef değişken incelemesini yapınız.
+# Step 4: Analyze the relationship between categorical variables and the target variable
 #########################
 
 df.groupby("Churn")["gender"].value_counts()
@@ -405,8 +338,9 @@ for col in cat_cols:
     print(df.groupby("Churn")[col].value_counts())
 
 #########################
-# NUMERİK DEĞİŞKENLERİN TARGET GÖRE ANALİZİ
+# ANALYSIS OF NUMERICAL VARIABLES WITH RESPECT TO THE TARGET VARIABLE
 #########################
+
 def target_summary_with_num(dataframe, target, numerical_col):
     print(dataframe.groupby(target).agg({numerical_col: "mean"}), end="\n")
     print("##########################################")
@@ -431,10 +365,9 @@ for col in num_cols:
 
 
 #########################
-# Adım 5: Aykırı gözlem var mı inceleyiniz.
+# Step 5: Check for outliers 
 #########################
 
-# Veri setinde değişkenlerde aykırı değer var mı yok mu?
 
 for col in num_cols:
     print(col, check_outlier(df, col))
@@ -442,10 +375,9 @@ for col in num_cols:
 # MonthlyCharges False
 # TotalCharges False
 
-# Veri setinde hiçbir değişkende aykırı değer yok
 
 #########################
-# Adım 6: Eksik gözlem var mı inceleyiniz.
+# Step 6: Check for missing values
 #########################
 
 df.isnull().sum()
@@ -473,58 +405,40 @@ df.isnull().sum()
 
 
 ###############################################################################
-# Görev 2 : Feature Engineering
+# Task 2 : Feature Engineering
 ###############################################################################
 
 #########################
-# Adım 1: Eksik ve aykırı gözlemler için gerekli işlemleri yapınız.
+# Step 1: Perform necessary operations for missing and outlier observations
 #########################
 
 df["TotalCharges"] = df["TotalCharges"].fillna(df["TotalCharges"].mean())
 # TotalCharges        0
 # Eksik değerler TotalCharges'ın mean değeri ile dolduruldu
 
-#######AKAY#######
-
-df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors='coerce') #Sayısal olmayan (string) değerleri NaN olarak işaretleyelim
-df["TotalCharges"].isnull().sum()   #Out[33]: 11  adet NaN değer var
-df = df.dropna(subset=["TotalCharges"])
-####################
 
 #########################
-# Adım 2: Yeni değişkenler oluşturunuz.
+# Step 2: Create new variables
 #########################
 
 df.head()
 
-df["AnnualCharges"] = df["MonthlyCharges"] * 12  # Müşteriden yıllık olarak tahsil edilen tutar
+df["AnnualCharges"] = df["MonthlyCharges"] * 12 
 
 labels = ["Low Charges", "Moderate Charges", "High Charges", "Very High Charges"]
-df["ChargesCategory"] = pd.qcut(df["TotalCharges"], q=4, labels=labels)  # TotalCharges değişkeni değerlerini 4'e böler
+df["ChargesCategory"] = pd.qcut(df["TotalCharges"], q=4, labels=labels)  
 
-df["TenureYears"] = df["tenure"] / 12  # Müşterinin şirkette kaldığı yıl sayısı
+df["TenureYears"] = df["tenure"] / 12  
 
 labels = ["New Customer", "Recent Customer", "Regular Customer", "Long-term Customer"]
 df["CustomerType"] = pd.qcut(df["tenure"], q=4, labels=labels)
 
 cat_cols, num_cols, cat_but_car = grab_col_names(df)
-########BERNA############
-df['NEW_Contract_Length'] = [0 if x == 'Month-to-month' else 1 if x == 'One year' else 2 for x in df['Contract']]
 
-
-
-########AKAY#####
-
-df["Contract"].unique()  #Out[90]: array(['Month-to-month', 'One year', 'Two year'], dtype=object)
-odeme_tipi = ["Month-to-month", "One year", "Two year"]
-df["Contract"] = pd.Categorical(df["Contract"], categories=odeme_tipi, ordered=True) ## Categorical veri tipi ile sıralama
-df["Contract_Encoded"] = df["Contract"].cat.codes ##
-########################
 #########################
-# Adım 3: Encoding işlemlerini gerçekleştiriniz.
+# Step 3: Perform encoding operations
 #########################
 
-# 2 sınıfa sahip olan tipi kategorik olan değişkenleri BINARY ENCODER'dan geçireceğiz:
 
 binary_cols = [col for col in df.columns if df[col].dtype not in [int, float]
                and df[col].nunique() == 2]
@@ -569,7 +483,7 @@ df['Churn'] = df['Churn'].replace({'yes': 1, 'no': 0})
 df["Churn"] = label_encoder(df,"Churn")
 
 #########################
-# Adım 4: Numerik değişkenler için standartlaştırma yapınız.
+# Step 4: Perform standardization for numerical variables
 #########################
 
 num_cols  # ['tenure', 'MonthlyCharges', 'TotalCharges', 'AnnualCharges', 'TenureYears']
@@ -581,22 +495,22 @@ df.head()
 
 
 ###############################################################################
-# Görev 3 : Modelleme
+# Task 3: Modeling
 ###############################################################################
 
 #########################
-# Adım 1: Sınıflandırma algoritmaları ile modeller kurup, accuracy skorlarını inceleyip. En iyi 4 modeli seçiniz.
+# Step 1: Build models using classification algorithms, evaluate their accuracy scores, and select the top 4 models
 #########################
 
 df = df.drop("customerID", axis=1)
 
-# Bağımlı (hedef) değişken ile bağımsız değişkenler arasındaki ilişkinin modellenmesi:
+# Modeling the relationship between the dependent (target) variable and the independent variables
 
 y = df["Churn"]  # bağımlı değişken
 
-X = df.drop(["Churn"], axis=1)  # Tüm veri setinden bağımlı değişkeni düşür = bağımsız değişkenler
+X = df.drop(["Churn"], axis=1) # Drop the target (dependent) variable from the entire dataset = independent variables
 
-log_model = LogisticRegression().fit(X, y)  # Logistik regresyon modelin kurulup X ve y'ye fit edilmesi
+log_model = LogisticRegression().fit(X, y) 
 
 log_model.intercept_  # b: sabit değeri = array([-1.05233806])
 log_model.coef_  # w: bağımsız değişkenlerin katsayısı/ağırlığı:
@@ -617,10 +531,10 @@ y_pred = log_model.predict(X)
 ######################################################
 
 ###########################################
-# 1. YÖNTEM: LOGISTIC REGRESSION:
+# 1. LOGISTIC REGRESSION:
 ############################################
 
-# Karmaşıklık matrixte bulunan Accuracy, Precision, Recall, F1-score değerlerin numerik karşılıkları ve heatmapi:
+# Numerical values of Accuracy, Precision, Recall, and F1-score from the confusion matrix and the corresponding heatmap
 def plot_confusion_matrix(y, y_pred):
     acc = round(accuracy_score(y, y_pred), 2)
     cm = confusion_matrix(y, y_pred)
@@ -644,12 +558,12 @@ print(classification_report(y, y_pred))
 
 # ROC AUC
 y_prob = log_model.predict_proba(X)[:, 1]
-# Olası farklı sınıflandırma tresholdlarına göre hesaplanan bağımlı değişkenin 1 sınıfının gerçekleşme olasılıkları
+# Probabilities of the target variable being class 1, calculated based on different classification thresholds
 roc_auc_score(y, y_prob)  # 0.85 --> modelin pozitif (1) sınıfları negatif (0) sınıflardan ayırma yeteneği oldukça iyi
 
 
 #######################
-# 1.1. Model Validation (Doğrulama): Holdout (Sınama) Yaklaşımı
+# 1.1. Model Validation: Holdout (Test) Approach
 #######################
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=17)
@@ -712,13 +626,13 @@ cv_results['test_roc_auc'].mean()
 
 
 ###########################################
-# 2. YÖNTEM: KNN MODEL:
+# 2. KNN MODEL:
 ###########################################
 
 knn_model = KNeighborsClassifier().fit(X, y)
 
 # Confusion matrix için y_pred:
-y_pred = knn_model.predict(X)  # bütün gözlem birimleri için tahmin yap ve bunları y_pred'de sakla
+y_pred = knn_model.predict(X)  
 
 # AUC için y_prob:
 y_prob = knn_model.predict_proba(X)[:, 1]
@@ -747,11 +661,10 @@ cv_results['test_roc_auc'].mean()  # 0.784
 
 
 #########################
-# Adım 2: Seçtiğiniz modeller ile hiperparametre optimizasyonu gerçekleştirin ve bulduğunuz hiparparametreler ile
-# modeli tekrar kurunuz.
+# Step 2: Perform hyperparameter optimization for the selected models and rebuild the models using the optimized parameters
 #########################
 
-# hyperparameters (veri setinden bulunmayan kullanıcı tarafından dışardan belirlenen parametreler)
+# hyperparameters 
 
 knn_model = KNeighborsClassifier()
 knn_model.get_params()
@@ -780,8 +693,8 @@ knn_gs_best.best_params_  # {'n_neighbors': 42}
 # Final Model
 ###########################
 
-# Yukarıda KNN algoritmasının en iyi hangi hiperparametre değeri ile çalışacağını test ettik. Şimdi bu değerleri
-# kullanarak modeli tekrar kuracağız.
+# Above, we tested which hyperparameter values work best for the KNN algorithm.  
+# Now, we will rebuild the model using these values.
 
 knn_final = knn_model.set_params(**knn_gs_best.best_params_).fit(X, y)
 
